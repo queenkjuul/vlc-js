@@ -1,0 +1,23 @@
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: publish to NPM
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: irby/setup-node-nvm@0f2fe973693e3657f208b039956df88e3000939d
+      - run: npm install
+      - run: npm run check
+      - run: npm run build
+      - uses: JS-DevTools/npm-publish@61d419d5bb515116b1745c3da8575d37c58edff7
+        if: inputs.publish
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          access: public

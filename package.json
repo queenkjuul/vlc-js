@@ -1,7 +1,6 @@
 {
-  "name": "vlc-js",
+  "name": "@discodeck/vlc-js",
   "version": "0.0.1",
-  "private": true,
   "files": [
     "dist"
   ],

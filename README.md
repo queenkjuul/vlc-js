@@ -19,6 +19,8 @@ npm run dev
 
 _Recommended: [examine the demo source](./src/demo.ts)_
 
+`npm install @discodeck/vlc-js`
+
 ### `iframe` Mode
 
 Due to VLC.js being multithreaded and targeting an older version of Emscripten, there is no clean way to tear down a VLC instance once one has been initialized, and it is not expected that multiple instances can coexist. Thus, one can use a premade `iframe` to encapsulate a single VLC instance, which is useful in single-page applications, where you can just create and destroy iframes as needed.
@@ -29,9 +31,9 @@ Due to VLC.js being multithreaded and targeting an older version of Emscripten, 
 
 ```tsx
 // using vite asset import
-import vlcFrame from "vlc-js/vlc.html?url"
+import vlcFrame from "@discodeck/vlc-js/vlc.html?url"
 // if using TypeScript
-import type VLC from "vlc-js"
+import type VLC from "@discodeck/vlc-js"
 
 const vlcElem = document.querySelector("#vlc")
 vlcElem.contentWindow?.addEventListener("message", async (event) => {
@@ -57,7 +59,7 @@ Provides a static class which provides a singleton instance of a VLC.js media pl
 ```
 
 ```ts
-import VLC from "vlc-js"
+import VLC from "@discodeck/vlc-js"
 
 await VLC.load({
   runtimeArguments: "-vvv", // debug logging (optional)
