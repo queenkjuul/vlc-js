@@ -21,6 +21,18 @@ _Recommended: [examine the demo source](./src/demo.ts)_
 
 `npm install @discodeck/vlc-js`
 
+The first step is always to call `await VLC.load()`, with an optional options object. From there, the standard playback controls are available via `VLC.player` e.g. `VLC.player.play()`. The entire `VlcWasmModule` interface is exposed via `VLC.module` and can be called with the player pointer:
+
+```ts
+const stringPointer = VLC.module.stringToNewUTF8(mode)
+VLC.module._libvlc_video_set_deinterlace(
+  VLC.player.pointer,
+  1,
+  stringPointer,
+)
+VLC.module._free(stringPointer)
+```
+
 ### `iframe` Mode
 
 Due to VLC.js being multithreaded and targeting an older version of Emscripten, there is no clean way to tear down a VLC instance once one has been initialized, and it is not expected that multiple instances can coexist. Thus, one can use a premade `iframe` to encapsulate a single VLC instance, which is useful in single-page applications, where you can just create and destroy iframes as needed.
@@ -90,4 +102,4 @@ Put it all together and you get (for example)
 
 VLC.js can open a local file that is selected via the standard JavaScript File API and an `<input type="file" />` element.
 
-See [the demo source](./src/demo.ts) for an example of how to do this.
+See [the demo source](./src/demo.ts) for an example of how to do this using `VLC.player.openFile(file)`
