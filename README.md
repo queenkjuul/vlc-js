@@ -35,7 +35,7 @@ VLC.module._free(stringPointer)
 
 ### React Component
 
-You can use a readymade React component, see [`vlc-react`](https://github.com/queekjuul/vlc-react)
+There is a React component you can copy into your own project in [`./examples/VlcMediaPlayer.tsx`](./examples/README.md). I tried to package it for NPM but because of the iframe, I could never get the packaged asset paths to resolve correctly in a consuming app, so I gave up. It's a simple ~100-line wrapper component, just drop it into your project directly.
 
 ### `iframe` Mode
 
