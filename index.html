@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vlc-js</title>
+  </head>
+  <body>
+    <canvas id="vlc-output" width="1280px" height="720px"></canvas>
+    <div style="display: flex; flex-direction: row; gap: 2px">
+      <button id="play">Play</button>
+      <button id="pause">Pause</button>
+      <button id="stop">Stop</button>
+      <button id="prev">Prev</button>
+      <button id="next">Next</button>
+    </div>
+    <input type="file" id="file-input" />
+    <label for="demux-input"
+      >Specify a demuxer (e.g. mkv, dvd):
+      <input type="text" id="demux-input" />
+    </label>
+    <script type="module" src="/src/demo.ts"></script>
+  </body>
+</html>
