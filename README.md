@@ -33,6 +33,10 @@ VLC.module._libvlc_video_set_deinterlace(
 VLC.module._free(stringPointer)
 ```
 
+### React Component
+
+You can use a readymade React component, see [`vlc-react`](https://github.com/queekjuul/vlc-react)
+
 ### `iframe` Mode
 
 Due to VLC.js being multithreaded and targeting an older version of Emscripten, there is no clean way to tear down a VLC instance once one has been initialized, and it is not expected that multiple instances can coexist. Thus, one can use a premade `iframe` to encapsulate a single VLC instance, which is useful in single-page applications, where you can just create and destroy iframes as needed.
