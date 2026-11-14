@@ -11,13 +11,23 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./vlc.html": "./dist/app/vlc.html"
+    "./vlc.js": {
+      "import": "./dist/vlc.js"
+    },
+    "./vlc.wasm": {
+      "import": "./dist/vlc.wasm"
+    },
+    "./vlc.worker.js": {
+      "import": "./dist/vlc.worker.js"
+    },
+    "./audio-worklet-processor.js": {
+      "import": "./dist/audio-worklet-processor.js"
+    }
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:lib && npm run build:app",
-    "build:app": "tsc && vite build",
-    "build:lib": "tsc && LIB=1 vite build",
+    "build": "tsup",
+    "build:app": "tsc -b && vite build",
     "preview": "vite preview",
     "check": "oxlint",
     "format": "oxfmt"
@@ -28,9 +38,9 @@
     "@types/node": "^26.6.6",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
+    "tsup": "^9.0.0",
     "typescript": "^6.0.3",
     "vite": "^8.3.6",
-    "vite-plugin-dts": "^5.1.2",
     "vite-plugin-static-copy": "^4.1.1"
   }
 }
