@@ -1,6 +1,3 @@
-import vlcAudio from "../vlc/audio-worklet-processor.js?url"
-import vlcJs from "../vlc/vlc.js?url"
-import vlcWorker from "../vlc/vlc.worker.js?url"
 import type { VlcMediaPlayerOptions, VlcWasmModule } from "./module"
 import { importScript, toBlobURL } from "./util"
 import VlcMediaPlayer from "./VlcMediaPlayer"
@@ -8,7 +5,22 @@ import VlcMediaPlayer from "./VlcMediaPlayer"
 export const VLC_READY_VALUE = "vlc-ready"
 
 export default class VLC {
-  static WASM_URL = new URL("../vlc/vlc.wasm", import.meta.url).href
+  static vlcAudio = new URL(
+    "../vlc/audio-worklet-processor.js",
+    import.meta?.url || window.origin,
+  ).href
+  static vlcJs = new URL(
+    "../vlc/vlc.js",
+    import.meta?.url || window.origin,
+  ).href
+  static vlcWorker = new URL(
+    "../vlc/vlc.worker.js",
+    import.meta?.url || window.origin,
+  ).href
+  static vlcWasm = new URL(
+    "../vlc/vlc.wasm",
+    import.meta?.url || window.origin,
+  ).href
 
   static #loaded = false
   static #loading = false
@@ -21,12 +33,12 @@ export default class VLC {
     VLC.#loading = true
     try {
       const [js, wasm, worker, audio] = await Promise.all([
-        toBlobURL(vlcJs, "text/javascript"),
-        fetch(VLC.WASM_URL).then((r) => r.arrayBuffer()),
-        toBlobURL(vlcWorker, "text/javascript"),
-        toBlobURL(vlcAudio, "text/javascript"),
+        toBlobURL(VLC.vlcJs, "text/javascript"),
+        fetch(VLC.vlcWasm).then((r) => r.arrayBuffer()),
+        toBlobURL(VLC.vlcWorker, "text/javascript"),
+        toBlobURL(VLC.vlcAudio, "text/javascript"),
       ])
-      await importScript(vlcJs)
+      await importScript(VLC.vlcJs)
       const defaultModule = {
         print: function (text: string) {
           console.log(text)
