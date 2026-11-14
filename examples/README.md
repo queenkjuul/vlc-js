@@ -4,11 +4,9 @@ This is a React component which wraps [the `vlc-js` iframe player.](https://gith
 
 It is **EXPERIMENTAL,** somewhat unstable, not very performant, and has no hardware acceleration. However, it is easy to use, and it supports video formats that can't be played with standard Web APIs. It can also navigate and render DVDs, as demonstrated with [`discodeck`](https://github.com/queenkjuul/discodeck). The player can open files from the local filesystem, or it can open files over HTTP(S), as long as those files are served with appropriate CORS headers.
 
-## Installation
-
-I struggled for too long to get proper npm packaging working for this component, and eventually I gave up. Just copy the component into your project. It's not that complicated of a component.
-
 ## Usage
+
+For more about the actual VLC player API, see the underlying [`vlc-js` library documentation](https://github.com/queenkjuul/vlc-js)
 
 ```tsx
 const vlcRef = useRef<typeof VLC>(null)

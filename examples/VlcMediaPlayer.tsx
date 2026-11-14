@@ -1,5 +1,9 @@
 // @ts-nocheck
-/* === COPY FROM BELOW THIS LINE: ===*/
+/*
+  This file is not necessarily copy-pastable. 
+  It assumes you are using Vite.
+  You probably need to adjust the asset paths.
+*/
 
 /*
 @discodeck/vlc-react
@@ -18,15 +22,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 import VLC, {
+  createVLCIframeSrc,
   VLC_READY_VALUE,
   type VlcMediaPlayerOptions,
 } from "@discodeck/vlc-js"
-import iframeUrl from "@discodeck/vlc-js/vlc.html?url"
+import vlcAudio from "@discodeck/vlc-js/audio-worklet-processor.js?url"
+import vlcJs from "@discodeck/vlc-js/vlc.js?url"
+import vlcWasm from "@discodeck/vlc-js/vlc.wasm?url"
+import vlcWorker from "@discodeck/vlc-js/vlc.worker.js?url"
 import {
+  forwardRef,
+  useCallback,
   useEffect,
-  useRef,
   useState,
   type CSSProperties,
   type ReactElement,
@@ -53,21 +61,24 @@ export default function VlcMediaPlayer({
   source,
   demux,
   options,
-  className,
+  className: _className,
   style,
   stylesheetUrl,
   onLoad,
   loadingView,
   children,
 }: VlcMediaPlayerProps): ReactElement {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [iframe, setIframe] = useState<HTMLIFrameElement | null>(null)
 
   const [loaded, setLoaded] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
+  const setIframeRef = useCallback((el: HTMLIFrameElement | null) => {
+    setIframe(el)
+  }, [])
+
   useEffect(() => {
-    if (loaded) return
-    const iframe = iframeRef.current
+    if (loaded || !iframe) return
     const listener = async (message: MessageEvent) => {
       if (!iframe) return
       if (message.data === VLC_READY_VALUE) {
@@ -77,6 +88,13 @@ export default function VlcMediaPlayer({
             "VLC reported ready but was not attached to the iframe window",
           )
         }
+        vlc.vlcJs = (import.meta.env.DEV ? window.origin : "") + vlcJs
+        vlc.vlcAudio =
+          (import.meta.env.DEV ? window.origin : "") + vlcAudio
+        vlc.vlcWorker =
+          (import.meta.env.DEV ? window.origin : "") + vlcWorker
+        vlc.vlcWasm =
+          (import.meta.env.DEV ? window.origin : "") + vlcWasm
         await vlc.load(options)
         setLoaded(() => true)
         setLoading(() => false)
@@ -102,9 +120,12 @@ export default function VlcMediaPlayer({
           }
           doc.documentElement.style.colorScheme =
             document.documentElement.style.colorScheme
-          iframe.contentWindow?.addEventListener("message", listener)
         }
       }
+    }
+
+    if (iframe) {
+      iframe.contentWindow?.addEventListener("message", listener)
     }
 
     return () => {
@@ -112,7 +133,7 @@ export default function VlcMediaPlayer({
     }
   }, [
     vlcRef,
-    iframeRef,
+    iframe,
     options,
     loaded,
     onLoad,
@@ -126,7 +147,27 @@ export default function VlcMediaPlayer({
     <>
       {loading && loadingView}
       {children}
-      <iframe ref={iframeRef} {...{ className }} src={iframeUrl} />
+      <VlcFrame ref={setIframeRef} />
     </>
   )
 }
+
+export const VlcFrame = forwardRef<HTMLIFrameElement>(
+  function VlcFrame(_, ref) {
+    const [src, setSrc] = useState<string | null>(null)
+
+    useEffect(() => {
+      const url = createVLCIframeSrc()
+      setSrc(url)
+      return () => URL.revokeObjectURL(url)
+    }, [])
+
+    return src ? (
+      <iframe
+        ref={ref}
+        src={src}
+        style={{ width: "100%", height: "100%", border: "none" }}
+      />
+    ) : null
+  },
+)

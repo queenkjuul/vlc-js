@@ -46,10 +46,10 @@ Due to VLC.js being multithreaded and targeting an older version of Emscripten, 
 ```
 
 ```tsx
-// using vite asset import
-import vlcFrame from "@discodeck/vlc-js/vlc.html?url"
 // if using TypeScript
-import type VLC from "@discodeck/vlc-js"
+import type VLC, { createVLCIframeSrc } from "@discodeck/vlc-js"
+
+const vlcFrame = createVLCIframeSrc()
 
 const vlcElem = document.querySelector("#vlc")
 vlcElem.contentWindow?.addEventListener("message", async (event) => {
