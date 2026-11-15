@@ -6,11 +6,6 @@ export * from "./lib/VlcMediaItem"
 export { default as VlcMediaPlayer } from "./lib/VlcMediaPlayer"
 export type { MainModule } from "./vlc/libvlc"
 
-export interface VLCIframeOptions {
-  width?: number
-  height?: number
-}
-
 export function createVLCIframeSrc(
   width = 1280,
   height = 720,
@@ -32,7 +27,7 @@ export function createVLCIframeSrc(
         display: flex;
         justify-content: center;
         align-items: center;
-        }
+      }
     </style>
   </head>
   <body>
