@@ -21,10 +21,34 @@ _Recommended: [examine the demo source](./src/demo.ts)_
 
 `npm install @discodeck/vlc-js`
 
-The first step is always to call `await VLC.load()`, with an optional options object. From there, the standard playback controls are available via `VLC.player` e.g. `VLC.player.play()`. The entire `VlcWasmModule` interface is exposed via `VLC.module` and can be called with the player pointer:
+The first step is always to call `await VLC.load()`, with an optional options object. From there, the standard playback controls are available via `VLC.player` e.g. `VLC.player.play()`. `VLC.player` is also an `EventTarget` that handles any event from `libvlc_event_e` just like you're used to with any other JS/TS `EventTarget`:
 
 ```ts
-const stringPointer = VLC.module.stringToNewUTF8(mode)
+await VLC.load({
+  filePath: "fetch/dvd://https://archive.queenkjuul.com/big-buck-bunny-NTSC.iso"
+})
+const openingHandeler = () => {
+  status = "Opening Media"
+}
+VLC.player.addEventListener("MediaPlayerOpening", openingHandler)
+VLC.player.play()
+...
+// cleanup later
+VLC.player.removeEventListener("MediaPlayerOpening", openingHandler)
+```
+
+You can call any of the `VlcWasmModule` functions which take a `media_player` pointer with `VLC.player.run()`:
+
+```ts
+const stringPointer = VLC.module.stringToNewUTF8("Blend")
+VLC.player.run("_libvlc_video_set_deinterlace", 1, stringPointer)
+VLC.module._free(stringPointer)
+```
+
+Or, to do the same thing using `VLC.module` directly:
+
+```ts
+const stringPointer = VLC.module.stringToNewUTF8("Blend")
 VLC.module._libvlc_video_set_deinterlace(
   VLC.player.pointer,
   1,
@@ -33,20 +57,21 @@ VLC.module._libvlc_video_set_deinterlace(
 VLC.module._free(stringPointer)
 ```
 
-### React Component
-
-There is a React component you can copy into your own project in [`./examples/VlcMediaPlayer.tsx`](./examples/README.md). I tried to package it for NPM but because of the iframe, I could never get the packaged asset paths to resolve correctly in a consuming app, so I gave up. It's a simple ~100-line wrapper component, just drop it into your project directly.
-
 ### `iframe` Mode
 
 Due to VLC.js being multithreaded and targeting an older version of Emscripten, there is no clean way to tear down a VLC instance once one has been initialized, and it is not expected that multiple instances can coexist. Thus, one can use a premade `iframe` to encapsulate a single VLC instance, which is useful in single-page applications, where you can just create and destroy iframes as needed.
+
+The `createVLCIframeSrc()` function takes 4 optional arguments:
+
+- `width`, `height`: size of the Canvas element (framebuffer size, not display size)
+- `canvasStyle`: HTML style string to apply to the `<canvas id="vlc-output">` element within the iframe
+- `bodyStyle`: HTML style string to apply to the `body` element within the iframe
 
 ```html
 <iframe id="vlc" />
 ```
 
 ```tsx
-// if using TypeScript
 import type VLC, { createVLCIframeSrc } from "@discodeck/vlc-js"
 
 const vlcFrame = createVLCIframeSrc()
@@ -68,7 +93,7 @@ vlcElem.src = vlcFrame
 
 ### Library Mode
 
-Provides a static class which provides a singleton instance of a VLC.js media player.
+Provides a static class which provides a singleton instance of a VLC.js media player. Once it is instantiated, it cannot be fully torn down.
 
 ```html
 <canvas id="vlc-output" width="1280" height="720"></canvas>
@@ -85,6 +110,10 @@ VLC.player.setMedia(
 )
 VLC.player.play()
 ```
+
+### React Component
+
+There is a React component you can copy into your own project in [`./examples/VlcMediaPlayer.tsx`](./examples/README.md). I tried to package it for NPM but because of the iframe, I could never get the packaged asset paths to resolve correctly in a consuming app, so I gave up, but you can look at my implementation for inspiration.
 
 ### File Access
 
@@ -107,3 +136,32 @@ Put it all together and you get (for example)
 VLC.js can open a local file that is selected via the standard JavaScript File API and an `<input type="file" />` element.
 
 See [the demo source](./src/demo.ts) for an example of how to do this using `VLC.player.openFile(file)`
+
+## Development
+
+For hacking on the `vlc-js` TypeScript wrapper, you can just use
+
+`npm run dev`
+
+and modify the `demo.ts` script (and the code in `src/lib/`)
+
+For modifying VLC.js or the underlying VLC build themselves, you can:
+
+1. Run `fetch.sh` to grab the VLC.js and VLC sources. By default, it will clone my forks and checkout the branches used for the published builds of `vlc-js`. You can override this with the `VLC_SOURCE`, `VLC_BRANCH`, `VLCJS_SOURCE`, and `VLCJS_BRANCH` environment variables.
+2. Run `compile.sh`. This will compile VLC for wasm-emscripten using the VLC.js tooling, then copy the necessary outputs into the `vlc-js` source tree.
+3. Run `npm run build` to generate the `vlc-js` TypeScript library in `dist/`
+4. (optional) Run `npm link` from the `vlc-js` root, then run `npm link @discodeck/vlc-js` in your consuming project to use your local checkout in a consuming app.
+
+### Docker (recommended)
+
+If you plan to modify VLC source yourself, you may want to run `./fetch.sh` as your normal user before running the Docker build (which runs as root).
+
+`docker run --rm -it -v $PWD:/build -w /build queenkjuul/discodeck-vlc:latest /build/compile.sh`
+
+To build the image locally:
+
+`docker build -t discodeck-vlc .`
+
+after which compiling becomes:
+
+`docker run --rm -it -v $PWD:/build -w /build discodeck-vlc /build/compile.sh`

@@ -6,9 +6,11 @@ const DEMO_CONFIG: UserConfig = {
   input: {
     main: resolve(import.meta.dirname, "index.html"),
   },
+  publicDir: "src/vlc",
   build: {
-    outDir: "dist/app",
+    outDir: "dist/demo",
     emptyOutDir: false,
+    copyPublicDir: true,
   },
   server: {
     headers: {

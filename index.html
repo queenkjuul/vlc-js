@@ -8,17 +8,23 @@
   </head>
   <body>
     <canvas id="vlc-output" width="1280px" height="720px"></canvas>
-    <div style="display: flex; flex-direction: row; gap: 2px">
+    <div style="display: flex; flex-direction: row; gap: 4px">
       <button id="play">Play</button>
       <button id="pause">Pause</button>
       <button id="stop">Stop</button>
       <button id="prev">Prev</button>
       <button id="next">Next</button>
+      <button id="menu">DVD Menu</button>
+      <label>Status: <span id="status">Loading VLC</span></label>
     </div>
     <input type="file" id="file-input" />
     <label for="demux-input"
       >Specify a demuxer (e.g. mkv, dvd):
       <input type="text" id="demux-input" />
+    </label>
+    <label for="file-path">
+      Provide a file MRL:<input type="text" id="file-path" />
+      <button id="open">Open</button>
     </label>
     <script type="module" src="/src/demo.ts"></script>
   </body>
