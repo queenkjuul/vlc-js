@@ -1,9 +1,11 @@
 // TypeScript bindings for emscripten-generated code.  Automatically generated at compile time.
 interface WasmModule {
   _set_global_media_player(_0: number): void;
-  _attach_update_events(_0: number): void;
+  _add_event_listener(_0: number, _1: number): number;
   _libvlc_media_player_event_manager(_0: number): number;
   _libvlc_event_attach(_0: number, _1: number, _2: number, _3: number): number;
+  _remove_event_listener(_0: number, _1: number): void;
+  _libvlc_event_detach(_0: number, _1: number, _2: number, _3: number): void;
   _libvlc_media_player_get_time(_0: number): number;
   _main(_0: number, _1: number): number;
   _wasm_media_player_new(): number;
@@ -211,7 +213,6 @@ interface WasmModule {
   _libvlc_audio_equalizer_get_preamp(_0: number): number;
   _libvlc_audio_equalizer_set_amp_at_index(_0: number, _1: number, _2: number): number;
   _libvlc_audio_equalizer_get_amp_at_index(_0: number, _1: number): number;
-  _libvlc_event_detach(_0: number, _1: number, _2: number, _3: number): void;
   _libvlc_media_list_new(): number;
   _libvlc_media_new_fd(_0: number): number;
   _libvlc_media_new_callbacks(_0: number, _1: number, _2: number, _3: number, _4: number): number;

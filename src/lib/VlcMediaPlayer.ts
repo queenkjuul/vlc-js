@@ -1,4 +1,15 @@
-import type { VlcMediaPlayerOptions, VlcWasmModule } from "./module"
+import {
+  VlcEvent,
+  VlcEventName,
+  type VlcEventValue,
+} from "../vlc/libvlc_events"
+import type {
+  VlcMediaPlayerOptions,
+  VlcModuleFunctionArgs,
+  VlcModuleFunctionName,
+  VlcModuleFunctionReturn,
+  VlcWasmModule,
+} from "./module"
 import {
   VlcNavigationCommands,
   type VlcNavigationCommand,
@@ -26,6 +37,9 @@ export default class VlcMediaPlayer {
   private _pointer: number | null = null
   private _canvasId: string
   private _canvasElem: HTMLCanvasElement | null = null
+
+  private eventListenerMap: Map<VlcEventName, Array<() => void>> =
+    new Map()
 
   constructor({
     canvasId = "vlc-output",
@@ -92,9 +106,11 @@ export default class VlcMediaPlayer {
     )
     this.VlcModule._free(canvasPointer)
 
-    this.VlcModule._attach_update_events(this.pointer)
+    // used upstream, but disabled in my fork.
+    // use this.addEventListener/this.removeEventListener instead
+    // this.VlcModule._attach_update_events(this.pointer)
 
-    canvasElem.addEventListener("keydown", this.handleNav)
+    window.addEventListener("keydown", this.handleNav)
 
     if (filePath) {
       this.setMedia(filePath)
@@ -143,10 +159,16 @@ export default class VlcMediaPlayer {
     this._pointer = null
     this.VlcModule._wasm_media_player_release(pointer)
 
-    this._canvasElem?.removeEventListener("keydown", this.handleNav)
+    window.removeEventListener("keydown", this.handleNav)
     this._canvasElem = null
   }
 
+  /**
+   * Pass a JS File object to VLC.js for playback
+   *
+   * @param file File handle from <input type="file" />
+   * @param demux Optional string telling VLC how to read the file
+   */
   public openFile = (file: File, demux?: string) => {
     this.VlcModule.vlc_access_file = {
       1: file,
@@ -179,6 +201,96 @@ export default class VlcMediaPlayer {
     )
     this.VlcModule._wasm_media_retain(mediaPointer)
     return new VlcMediaItem(this.VlcModule, null, mediaPointer)
+  }
+
+  /**
+   * USE WITH CAUTION.
+   *
+   * Calls a WasmModule function of the given name with this.pointer
+   * as the first argument, and passes other arguments through. This
+   * is useful shorthand for calling _libvlc_* and _wasm_* functions
+   * which take a VLC media player pointer as the first argument.
+   *
+   * WARNING: The type system WILL NOT SAVE YOU from using this to
+   * call a function which DOES NOT accept a VLC media player pointer
+   * as the first argument, WHICH WILL CRASH THE APP. Refer to the
+   * VLC.js C++ source code for the exact available API.
+   *
+   * @param {K} fn
+   * @param {...{}} args
+   * @returns {any}
+   */
+  public run = <
+    K extends VlcModuleFunctionName & keyof VlcWasmModule,
+  >(
+    fn: K,
+    ...args: VlcModuleFunctionArgs<K>
+  ): VlcModuleFunctionReturn<K> => {
+    const func = this.VlcModule[fn] as any
+    return func(this.pointer, ...args)
+  }
+
+  /**
+   * This method must be public so that the VLC.js Emscripten code can
+   * call it, but it is NOT intended for use from JavaScript.
+   *
+   * @param type Libvlc_event_e event code value
+   */
+  public dispatchEvent: (type: VlcEventValue) => void = (type) => {
+    const name = VlcEventName[type]
+    const listeners = this.eventListenerMap.get(name)
+    if (listeners && listeners.length > 0) {
+      listeners.forEach((listener) => {
+        listener()
+      })
+    }
+  }
+
+  /**
+   * Register a callback to be run when the provided type of event
+   * fires
+   *
+   * @param type String corresponding to a libvlc event (see VlcEvent,
+   *   libvlc_events.h)
+   * @param listener Callback executed when an event of given type is
+   *   received
+   */
+  public addEventListener: (
+    type: VlcEventName,
+    listener: () => void,
+  ) => void = (type, listener) => {
+    const listeners = this.eventListenerMap.get(type)
+    let res = 0
+    if (!listeners || listeners.length === 0) {
+      res = this.VlcModule._add_event_listener(
+        this.pointer,
+        VlcEvent[type],
+      )
+    }
+    if (res == 0) {
+      if (!listeners) {
+        this.eventListenerMap.set(type, [listener])
+      } else {
+        listeners.push(listener)
+      }
+    }
+  }
+
+  public removeEventListener: (
+    type: VlcEventName,
+    listener: () => void,
+  ) => void = (type, listener) => {
+    const listeners = this.eventListenerMap.get(type)
+    if (listeners) {
+      const newListeners = listeners.filter((l) => l !== listener)
+      if (newListeners.length === 0) {
+        this.VlcModule._remove_event_listener(
+          this.pointer,
+          VlcEvent[type],
+        )
+      }
+      this.eventListenerMap.set(type, newListeners)
+    }
   }
 
   public togglePlay: () => void = () => {
@@ -418,5 +530,9 @@ export default class VlcMediaPlayer {
 
   public get isInitialized() {
     return !!this._pointer
+  }
+
+  public get canvasElem() {
+    return this._canvasElem
   }
 }

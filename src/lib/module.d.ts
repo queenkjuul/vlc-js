@@ -1,4 +1,4 @@
-import type { MainModule } from "../vlc/libvlc"
+import type { MainModule, WasmModule } from "../vlc/libvlc"
 import type VLC from "./VLC"
 
 /**
@@ -33,14 +33,12 @@ export interface ExportedRuntimeMethods {
   wasmMemory: {
     buffer: any
   }
-
   /**
    * Dictionary of JS files to make accessible to VLC.js
    *
    * @type {Record<string, File>}
    */
   vlc_access_file: Record<number, File>
-
   /**
    * Blob URL for the audio worklet JS file
    *
@@ -81,6 +79,24 @@ export type VlcMediaPlayerOptions = {
   module?: Partial<MainModule>
   runtimeArguments?: string | string[]
 }
+
+type VlcPointerFunction = (pointer: number, ...args: any[]) => any
+type VlcPointerFunctionKey<T extends WasmModule> = {
+  [K in keyof T]-?: T[K] extends VlcPointerFunction ? K : never
+}
+// Source - https://stackoverflow.com/a/58765199
+// Posted by georg
+// Retrieved 2026-11-14, License - CC BY-SA 4.0
+
+type OmitFirstArg<F> = F extends (x: any, ...args: infer P) => infer R
+  ? (...args: P) => R
+  : never
+
+export type VlcModuleFunctionName = VlcPointerFunctionKey<MainModule>
+export type VlcModuleFunctionArgs<K extends VlcModuleFunctionName> =
+  Parameters<OmitFirstArg<MainModule[K]>>
+export type VlcModuleFunctionReturn<K extends VlcModuleFunctionName> =
+  ReturnType<MainModule[K]>
 
 declare global {
   interface Window {
