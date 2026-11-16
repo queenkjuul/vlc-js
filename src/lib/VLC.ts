@@ -6,21 +6,12 @@ export const VLC_READY_VALUE = "vlc-ready"
 
 export default class VLC {
   static vlcAudio = new URL(
-    "../vlc/audio-worklet-processor.js",
-    import.meta?.url || window.origin,
+    "/audio-worklet-processor.js",
+    window.origin,
   ).href
-  static vlcJs = new URL(
-    "../vlc/vlc.js",
-    import.meta?.url || window.origin,
-  ).href
-  static vlcWorker = new URL(
-    "../vlc/vlc.worker.js",
-    import.meta?.url || window.origin,
-  ).href
-  static vlcWasm = new URL(
-    "../vlc/vlc.wasm",
-    import.meta?.url || window.origin,
-  ).href
+  static vlcJs = new URL("/vlc.js", window.origin).href
+  static vlcWorker = new URL("/vlc.worker.js", window.origin).href
+  static vlcWasm = new URL("/vlc.wasm", window.origin).href
 
   static #loaded = false
   static #loading = false
