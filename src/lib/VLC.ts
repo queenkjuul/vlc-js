@@ -19,13 +19,18 @@ export default class VLC {
   static #player: VlcMediaPlayer
   static #module: VlcWasmModule
 
-  public static load = async (opts?: VlcMediaPlayerOptions) => {
+  public static load = async (
+    opts?: VlcMediaPlayerOptions,
+    onProgress?: (loaded: number, total: number) => void,
+  ) => {
     if (VLC.#loaded) return
     VLC.#loading = true
     try {
       const [js, wasm, worker, audio] = await Promise.all([
         toBlobURL(VLC.vlcJs, "text/javascript"),
-        fetch(VLC.vlcWasm).then((r) => r.arrayBuffer()),
+        onProgress
+          ? fetchWithXHRProgress(VLC.vlcWasm, onProgress)
+          : fetch(VLC.vlcWasm).then((r) => r.arrayBuffer()),
         toBlobURL(VLC.vlcWorker, "text/javascript"),
         toBlobURL(VLC.vlcAudio, "text/javascript"),
       ])
@@ -79,4 +84,26 @@ export default class VLC {
   static get loaded(): boolean {
     return VLC.#loaded
   }
+}
+
+function fetchWithXHRProgress(
+  url: string,
+  onProgress: (loaded: number, total: number) => void,
+): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open("GET", url)
+    xhr.responseType = "arraybuffer"
+
+    xhr.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(event.loaded, event.total)
+      }
+    }
+
+    xhr.onload = () => resolve(xhr.response)
+    xhr.onerror = () => reject(new Error("Download failed"))
+
+    xhr.send()
+  })
 }
