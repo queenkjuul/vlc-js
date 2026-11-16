@@ -19,6 +19,11 @@ export default class VLC {
   static #player: VlcMediaPlayer
   static #module: VlcWasmModule
 
+  constructor() {
+    // this doesn't seem to always take? so we verify in load()
+    window.VLC = VLC
+  }
+
   public static load = async (
     opts?: VlcMediaPlayerOptions,
     onProgress?: (loaded: number, total: number) => void,
@@ -62,6 +67,12 @@ export default class VLC {
         ...opts,
         module: VLC.module,
       })
+
+      if (!window.VLC) {
+        // it's possible the constructor failed to attach (why though? idk)
+        // window.VLC must exist for VLC.js to fire events to the main thread
+        window.VLC = VLC
+      }
     } catch (e) {
       console.error("failed to load VLC.js", e)
       VLC.#loading = false
