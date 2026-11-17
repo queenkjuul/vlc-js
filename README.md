@@ -12,7 +12,7 @@ Requires `npm`. Built with Node 26, older versions may work
 git clone https://github.com/queenkjuul/vlc-js
 cd vlc-js
 npm ci
-npm run dev
+npm run demo
 ```
 
 ## How to Use
@@ -141,7 +141,7 @@ See [the demo source](./src/demo.ts) for an example of how to do this using `VLC
 
 For hacking on the `vlc-js` TypeScript wrapper, you can just use
 
-`npm run dev`
+`npm run dev:demo`
 
 and modify the `demo.ts` script (and the code in `src/lib/`)
 
@@ -149,7 +149,7 @@ For modifying VLC.js or the underlying VLC build themselves, you can:
 
 1. Run `fetch.sh` to grab the VLC.js and VLC sources. By default, it will clone my forks and checkout the branches used for the published builds of `vlc-js`. You can override this with the `VLC_SOURCE`, `VLC_BRANCH`, `VLCJS_SOURCE`, and `VLCJS_BRANCH` environment variables.
 2. Run `compile.sh`. This will compile VLC for wasm-emscripten using the VLC.js tooling, then copy the necessary outputs into the `vlc-js` source tree.
-3. Run `npm run build` to generate the `vlc-js` TypeScript library in `dist/`
+3. Run `npm run dev` to generate the `vlc-js` TypeScript library in `dist/` (or `npm run build`)
 4. (optional) Run `npm link` from the `vlc-js` root, then run `npm link @discodeck/vlc-js` in your consuming project to use your local checkout in a consuming app.
 
 ### Docker (recommended)
