@@ -9,6 +9,8 @@ export type { MainModule } from "./vlc/libvlc"
 export function createVLCIframeSrc(
   width = 1280,
   height = 720,
+  canvasStyle = "",
+  bodyStyle = "",
 ): string {
   const entryUrl = new URL("./iframe.global.js", import.meta.url).href
 
@@ -28,10 +30,18 @@ export function createVLCIframeSrc(
         justify-content: center;
         align-items: center;
       }
+
+      #vlc-output {
+        width: min(100%, calc(100vh * ${width} / ${height}));
+        aspect-ratio: ${width} / ${height};
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+      }
     </style>
   </head>
-  <body>
-    <canvas id="vlc-output" width="${width}" height="${height}"></canvas>
+  <body style="${bodyStyle}">
+    <canvas id="vlc-output" width="${width}" height="${height}" style="${canvasStyle}"></canvas>
     <script src="${entryUrl}"></script>
   </body>
 </html>`
